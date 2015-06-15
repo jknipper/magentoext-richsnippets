@@ -1,11 +1,22 @@
 Magento extension - Rich Snippets
-=======================
+=================================
+This is a fork of https://github.com/mborkowski/magentoext-richsnippets
 
-Magento extension that adds Rich snippets to your product page. There's a lot of extensions doing the same thing but this one is fully based on JSON+LD, so it allows us to install anytime without affecting any template of our store.
+I added following functionality to the original extension:
 
-Supports following Magento versions: 1.4, 1.5, 1.6, 1.7, 1.8, 1.9
+* Organization social links, shop logo and contact information
+* Sitelinks search box
+* Rich snippets in category listings
+* Additional product data
+* Trusted Shops rating in products
+* modman config file
 
-More about this extension here: http://www.creativestyle.net/blog/improve-magento-stores-seo-google-rich-snippets-tutorial.html 
+Installation
+------------
 
-This extension is brought to you thanks to creativestyle (http://www.creativestyle.de)
-Extension is Opened, so you can modify it and do whatever you want, but please don't expect any technical support from my side.
+If you are using [modman](https://github.com/colinmollenhour/modman) installation is simple:
+
+    modman clone https://github.com/jknipper/magentoext-richsnippets.git
+    
+Otherwise clone the repository and copy the contents of src to your project folder.
+    
