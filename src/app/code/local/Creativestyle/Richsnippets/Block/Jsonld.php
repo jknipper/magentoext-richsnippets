@@ -184,46 +184,49 @@ class Creativestyle_Richsnippets_Block_Jsonld extends Mage_Core_Block_Template {
 
 		}
 
-		$store_name = Mage::getStoreConfig( 'general/store_information/name' );
-		$url        = Mage::getStoreConfig( 'web/unsecure/base_url' );
-		$url_store  = Mage::getBaseUrl();
+		if (Mage::getBlockSingleton('page/html_header')->getIsHomePage()) {
 
-		// Add sitelinks search box
-		if ( Mage::getStoreConfig( 'richsnippets/general/searchbox' ) ) {
-			$search_url = Mage::helper( 'core' )->isModuleEnabled( 'AW_Advancedsearch' ) ? $url_store . "advancedsearch/result/?q={q}" : $url_store . "catalogsearch/result/?q={q}";
-			$search     = array(
-				"@context"        => "http://schema.org",
-				"@type"           => "WebSite",
-				"name"            => $store_name,
-				"url"             => $url,
-				"potentialAction" => array(
-					"@type"       => "SearchAction",
-					"target"      => $search_url,
-					"query-input" => "required name=q",
-				),
-			);
-			$ret .= '<script type="application/ld+json">' . "\n" . json_encode( $search, $debug ) . "\n</script>\n";
-		}
+			$store_name = Mage::getStoreConfig( 'general/store_information/name' );
+			$url        = Mage::getStoreConfig( 'web/unsecure/base_url' );
+			$url_store  = Mage::getBaseUrl();
 
-		// Social links and logo
-		if ( Mage::getStoreConfig( 'richsnippets/general/organization' ) ) {
-			$social = explode( "\n", Mage::getStoreConfig( 'richsnippets/social/links' ) );
-			$org    = array(
-				"@context"     => "http://schema.org",
-				"@type"        => "Organization",
-				"name"         => $store_name,
-				"email"        => Mage::getStoreConfig( 'trans_email/ident_general/email' ),
-				"url"          => $url,
-				"logo"         => Mage::getDesign()->getSkinUrl( Mage::getStoreConfig( 'design/header/logo_src' ) ),
-				"contactPoint" => array(
-					"@type"       => "ContactPoint",
-					"telephone"   => Mage::getStoreConfig( 'general/store_information/phone' ),
-					"email"       => Mage::getStoreConfig( 'trans_email/ident_support/email' ),
-					"contactType" => "customer service",
-				),
-				"sameAs"       => array( $social ),
-			);
-			$ret .= '<script type="application/ld+json">' . "\n" . json_encode( $org, $debug ) . "\n</script>\n";
+			// Add sitelinks search box
+			if ( Mage::getStoreConfig( 'richsnippets/general/searchbox' ) ) {
+				$search_url = Mage::helper( 'core' )->isModuleEnabled( 'AW_Advancedsearch' ) ? $url_store . "advancedsearch/result/?q={q}" : $url_store . "catalogsearch/result/?q={q}";
+				$search     = array(
+					"@context"        => "http://schema.org",
+					"@type"           => "WebSite",
+					"name"            => $store_name,
+					"url"             => $url_store,
+					"potentialAction" => array(
+						"@type"       => "SearchAction",
+						"target"      => $search_url,
+						"query-input" => "required name=q",
+					),
+				);
+				$ret .= '<script type="application/ld+json">' . "\n" . json_encode( $search, $debug ) . "\n</script>\n";
+			}
+
+			// Social links and logo
+			if ( Mage::getStoreConfig( 'richsnippets/general/organization' ) ) {
+				$social = explode( "\n", Mage::getStoreConfig( 'richsnippets/social/links' ) );
+				$org    = array(
+					"@context"     => "http://schema.org",
+					"@type"        => "Organization",
+					"name"         => $store_name,
+					"email"        => Mage::getStoreConfig( 'trans_email/ident_general/email' ),
+					"url"          => $url_store,
+					"logo"         => Mage::getDesign()->getSkinUrl( Mage::getStoreConfig( 'design/header/logo_src' ) ),
+					"contactPoint" => array(
+						"@type"       => "ContactPoint",
+						"telephone"   => Mage::getStoreConfig( 'general/store_information/phone' ),
+						"email"       => Mage::getStoreConfig( 'trans_email/ident_support/email' ),
+						"contactType" => "customer service",
+					),
+					"sameAs"       => array( $social ),
+				);
+				$ret .= '<script type="application/ld+json">' . "\n" . json_encode( $org, $debug ) . "\n</script>\n";
+			}
 		}
 
 		return $ret;
