@@ -101,11 +101,6 @@ class Creativestyle_Richsnippets_Block_Jsonld extends Mage_Core_Block_Template {
 			return;
 		}
 
-		$debug = 0;
-		if ( Mage::getStoreConfig( 'richsnippets/debug/enabled' ) ) {
-			$debug = JSON_PRETTY_PRINT;
-		}
-
 		$products = $this->getProducts();
 		$ret      = "";
 
@@ -247,7 +242,7 @@ class Creativestyle_Richsnippets_Block_Jsonld extends Mage_Core_Block_Template {
 			}
 
 			// return $data table in JSON format
-			$ret .= '<script type="application/ld+json">' . "\n" . json_encode( $data, $debug ) . "\n</script>\n";
+			$ret .= '<script type="application/ld+json">' . "\n" . json_encode( $data ) . "\n</script>\n";
 
 		}
 
@@ -272,7 +267,7 @@ class Creativestyle_Richsnippets_Block_Jsonld extends Mage_Core_Block_Template {
 						"query-input" => "required name=q",
 					),
 				);
-				$ret .= '<script type="application/ld+json">' . "\n" . json_encode( $search, $debug ) . "\n</script>\n";
+				$ret .= '<script type="application/ld+json">' . "\n" . json_encode( $search ) . "\n</script>\n";
 			}
 
 			// Social links and logo
@@ -294,7 +289,7 @@ class Creativestyle_Richsnippets_Block_Jsonld extends Mage_Core_Block_Template {
 					),
 					"sameAs"       => array( $social ),
 				);
-				$ret .= '<script type="application/ld+json">' . "\n" . json_encode( $org, $debug ) . "\n</script>\n";
+				$ret .= '<script type="application/ld+json">' . "\n" . json_encode( $org ) . "\n</script>\n";
 			}
 		}
 
