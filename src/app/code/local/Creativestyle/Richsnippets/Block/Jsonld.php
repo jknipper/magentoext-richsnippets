@@ -15,14 +15,18 @@ class Creativestyle_Richsnippets_Block_Jsonld extends Mage_Core_Block_Template {
 		));
 	}
 
+	public function getCacheKey() {
+		return serialize( $this->getCacheKeyInfo() );
+	}
+
 	public function getCacheKeyInfo() {
 		$key = array(
 			'RICH_SNIPPTES_JSON_LD',
 			Mage::app()->getStore()->getId(),
 			Mage::getDesign()->getPackageName(),
 			Mage::getDesign()->getTheme('template'),
-			$this->getCurrenCategoryKey(),
-			$this->getCurrenProductKey(),
+			$this->getCurrentCategoryKey(),
+			$this->getCurrentProductKey(),
 			$this->getRequestParams(),
 		);
 
@@ -34,7 +38,7 @@ class Creativestyle_Richsnippets_Block_Jsonld extends Mage_Core_Block_Template {
 		return $key;
 	}
 
-	private function getCurrenProductKey() {
+	private function getCurrentProductKey() {
 		if (!$this->_currentProductKey) {
 			$product = Mage::registry('current_product');
 			if ($product) {
@@ -55,7 +59,7 @@ class Creativestyle_Richsnippets_Block_Jsonld extends Mage_Core_Block_Template {
 		return $params;
 	}
 
-	public function getCurrenCategoryKey() {
+	public function getCurrentCategoryKey() {
 		if (!$this->_currentCategoryKey) {
 			$category = Mage::registry('current_category');
 			if ($category) {
