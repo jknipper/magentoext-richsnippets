@@ -1,6 +1,73 @@
 <?php
 
+/**
+ * Class Creativestyle_Richsnippets_Block_Jsonld
+ */
 class Creativestyle_Richsnippets_Block_Jsonld extends Mage_Core_Block_Template {
+
+	protected $_currentCategoryKey;
+	protected $_currentProductKey;
+
+	protected function _construct()	{
+		$this->addData(array(
+			'cache_lifetime'=> 86400,
+			'cache_tags'    => array(Mage_Catalog_Model_Category::CACHE_TAG, Mage_Catalog_Model_Product::CACHE_TAG)
+		));
+	}
+
+	public function getCacheKeyInfo() {
+		$key = array(
+			'RICH_SNIPPTES_JSON_LD',
+			Mage::app()->getStore()->getId(),
+			Mage::getDesign()->getPackageName(),
+			Mage::getDesign()->getTheme('template'),
+			$this->getCurrenCategoryKey(),
+			$this->getCurrenProductKey(),
+			$this->getRequestParams(),
+		);
+
+		/*
+		Mage::Log($key);
+		Mage::Log(md5(serialize($key)));
+		*/
+
+		return $key;
+	}
+
+	private function getCurrenProductKey() {
+		if (!$this->_currentProductKey) {
+			$product = Mage::registry('current_product');
+			if ($product) {
+				$this->_currentProductKey = $product->getEntityId();
+			} else {
+				$this->_currentProductKey = 0;
+			}
+		}
+
+		return $this->_currentProductKey;
+	}
+
+	private function getRequestParams() {
+		$params = Mage::app()->getRequest()->getParams();
+		if (empty($params)) {
+			return 0;
+		}
+		return $params;
+	}
+
+	public function getCurrenCategoryKey() {
+		if (!$this->_currentCategoryKey) {
+			$category = Mage::registry('current_category');
+			if ($category) {
+				$this->_currentCategoryKey = $category->getPath();
+			} else {
+				$this->_currentCategoryKey = Mage::app()->getStore()->getRootCategoryId();
+			}
+		}
+
+		return $this->_currentCategoryKey;
+	}
+
 
 	private function getProducts() {
 		$product = Mage::registry( 'current_product' );
@@ -49,7 +116,7 @@ class Creativestyle_Richsnippets_Block_Jsonld extends Mage_Core_Block_Template {
 			$currencyCode = Mage::app()->getStore()->getCurrentCurrencyCode();
 
 			$json = array(
-				'availability' => $product->isAvailable() ? 'http://schema.org/InStock' : 'http://schema.org/OutOfStock',
+				'availability' => $product->isSaleable() ? 'http://schema.org/InStock' : 'http://schema.org/OutOfStock',
 				'category'     => $categoryName
 			);
 
@@ -116,7 +183,7 @@ class Creativestyle_Richsnippets_Block_Jsonld extends Mage_Core_Block_Template {
 
 			// Set product condition
 			$condition  = Mage::getStoreConfig( 'richsnippets/general/condition' );
-			$store_name = Mage::getStoreConfig( 'general/store_information/name' );
+			$store_name = Mage::app()->getStore()->getName();
 
 			// Final array with all basic product data
 			$data = array(
@@ -184,15 +251,16 @@ class Creativestyle_Richsnippets_Block_Jsonld extends Mage_Core_Block_Template {
 
 		}
 
-		if (Mage::getBlockSingleton('page/html_header')->getIsHomePage()) {
+		if (Mage::getBlockSingleton('page/html_header')->getIsHomePage() || Mage::getSingleton('cms/page')->getIdentifier() == "home") {
 
-			$store_name = Mage::getStoreConfig( 'general/store_information/name' );
+			$store_name = Mage::app()->getStore()->getName();
 			$url        = Mage::getStoreConfig( 'web/unsecure/base_url' );
 			$url_store  = Mage::getBaseUrl();
 
 			// Add sitelinks search box
 			if ( Mage::getStoreConfig( 'richsnippets/general/searchbox' ) ) {
-				$search_url = Mage::helper( 'core' )->isModuleEnabled( 'AW_Advancedsearch' ) ? $url_store . "advancedsearch/result/?q={q}" : $url_store . "catalogsearch/result/?q={q}";
+				$modules = (array)Mage::getConfig()->getNode('modules')->children();
+				$search_url = isset($modules['AW_Advancedsearch']) ? $url_store . "advancedsearch/result/?q={q}" : $url_store . "catalogsearch/result/?q={q}";
 				$search     = array(
 					"@context"        => "http://schema.org",
 					"@type"           => "WebSite",
@@ -220,6 +288,7 @@ class Creativestyle_Richsnippets_Block_Jsonld extends Mage_Core_Block_Template {
 					"contactPoint" => array(
 						"@type"       => "ContactPoint",
 						"telephone"   => Mage::getStoreConfig( 'general/store_information/phone' ),
+						"url"         => Mage::getUrl("contacts"),
 						"email"       => Mage::getStoreConfig( 'trans_email/ident_support/email' ),
 						"contactType" => "customer service",
 					),
@@ -233,6 +302,20 @@ class Creativestyle_Richsnippets_Block_Jsonld extends Mage_Core_Block_Template {
 	}
 
 	private function getLoadedProductCollection() {
+		$pager = $this->getPagerValues();
+
+		$collection = Mage::getSingleton( 'catalog/layer' )->getProductCollection()
+		                  ->addAttributeToSelect( "image" )
+		                  ->setPageSize( $pager["limit"] )
+		                  ->setCurPage( $pager["page"] );
+
+		return $collection;
+	}
+
+	private function getPagerValues() {
+		if (!Mage::registry('current_category')) {
+			return false;
+		}
 
 		if ( Mage::app()->getRequest()->getParam( 'limit' ) ) {
 			$limit = (int) Mage::app()->getRequest()->getParam( 'limit' );
@@ -247,23 +330,7 @@ class Creativestyle_Richsnippets_Block_Jsonld extends Mage_Core_Block_Template {
 			$page = (int) Mage::app()->getRequest()->getParam( 'p' );
 		}
 
-		/*
-		$collection = Mage::registry("current_category")->getProductCollection()
-			              ->addAttributeToSelect(Mage::getSingleton('catalog/config')->getProductAttributes())
-						  ->setStore(Mage::app()->getStore())
-						  ->addFieldToFilter('visibility', Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH)
-		                  ->setPageSize($limit)
-		                  ->setCurPage($page)
-						  ->addUrlRewrite()
-		;
-		*/
-
-		$collection = Mage::getSingleton( 'catalog/layer' )->getProductCollection()
-		                  ->addAttributeToSelect( "image" )
-		                  ->setPageSize( $limit )
-		                  ->setCurPage( $page );
-
-		return $collection;
+		return array("page" => $page, "limit" => $limit);
 	}
 
 	private function getTrustedshopsRating() {

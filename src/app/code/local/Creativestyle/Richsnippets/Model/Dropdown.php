@@ -1,6 +1,6 @@
 <?php
 
-class Creativestyle_Richsnippets_Model_Dropdown {
+class Creativestyle_Richsnippets_Model_Dropdown extends Mage_Core_Model_Abstract {
 	public function toOptionArray() {
 		return array(
 			array(

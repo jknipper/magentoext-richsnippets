@@ -1,4 +1,6 @@
 src/app/code/local/Creativestyle/Richsnippets app/code/local/Creativestyle/Richsnippets
+src/app/design/frontend/base/default/layout/richsnippets.xml app/design/frontend/default/default/layout/richsnippets.xml
+src/app/design/frontend/base/default/template/richsnippets/index.phtml app/design/frontend/default/default/template/richsnippets/index.phtml
 src/app/design/frontend/base/default/layout/richsnippets.xml app/design/frontend/base/default/layout/richsnippets.xml
 src/app/design/frontend/base/default/template/richsnippets/index.phtml app/design/frontend/base/default/template/richsnippets/index.phtml
 src/app/etc/modules/Creativestyle_Richsnippets.xml app/etc/modules/Creativestyle_Richsnippets.xml
