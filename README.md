@@ -10,6 +10,7 @@ I added following functionality to the original extension:
 * Additional product data
 * Trusted Shops rating in products
 * modman config file
+* Caching capability
 
 Installation
 ------------

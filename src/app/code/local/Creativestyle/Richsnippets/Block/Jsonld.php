@@ -16,6 +16,9 @@ class Creativestyle_Richsnippets_Block_Jsonld extends Mage_Core_Block_Template {
 	}
 
 	public function getCacheKey() {
+		if (is_callable("parent::getCacheKey")) {
+			return parent::getCacheKey();
+		}
 		return serialize( $this->getCacheKeyInfo() );
 	}
 
@@ -29,12 +32,6 @@ class Creativestyle_Richsnippets_Block_Jsonld extends Mage_Core_Block_Template {
 			$this->getCurrentProductKey(),
 			$this->getRequestParams(),
 		);
-
-		/*
-		Mage::Log($key);
-		Mage::Log(md5(serialize($key)));
-		*/
-
 		return $key;
 	}
 
@@ -107,21 +104,24 @@ class Creativestyle_Richsnippets_Block_Jsonld extends Mage_Core_Block_Template {
 
 		$products = $this->getProducts();
 		$ret      = "";
+		$categoryName = Mage::registry( 'current_category' ) ? Mage::registry( 'current_category' )->getName() : '';
+		$storeId      = Mage::app()->getStore()->getId();
+		$currencyCode = Mage::app()->getStore()->getCurrentCurrencyCode();
+		$review    = Mage::getStoreConfig( 'richsnippets/general/review' );
+		$ts_review = Mage::getStoreConfig( 'richsnippets/trustedshops/enabled' );
+		$condition  = Mage::getStoreConfig( 'richsnippets/general/condition' );
+		$store_name = Mage::getStoreConfig( 'general/store_information/name' ) ? Mage::getStoreConfig( 'general/store_information/name' ) : Mage::app()->getStore()->getName();
+		$attributes = Mage::getStoreConfig( 'richsnippets/attributes' );
 
 		foreach ( $products as $product ) {
-			$categoryName = Mage::registry( 'current_category' ) ? Mage::registry( 'current_category' )->getName() : '';
+
 			$productId    = $product->getEntityId();
-			$storeId      = Mage::app()->getStore()->getId();
-			$currencyCode = Mage::app()->getStore()->getCurrentCurrencyCode();
 
 			$json = array(
 				'availability' => $product->isSaleable() ? 'http://schema.org/InStock' : 'http://schema.org/OutOfStock',
 				'category'     => $categoryName
 			);
 
-			// check if reviews are enabled in extension's backend configuration
-			$review    = Mage::getStoreConfig( 'richsnippets/general/review' );
-			$ts_review = Mage::getStoreConfig( 'richsnippets/trustedshops/enabled' );
 			if ( $review ) {
 				$reviewSummary = Mage::getModel( 'review/review/summary' );
 				$ratingData    = Mage::getModel( 'review/review_summary' )->setStoreId( $storeId )->load( $productId );
@@ -180,10 +180,6 @@ class Creativestyle_Richsnippets_Block_Jsonld extends Mage_Core_Block_Template {
 				$descsnippet = substr( $this->cleanAttribute( $product->getDescription() ), 0, 200 );
 			}
 
-			// Set product condition
-			$condition  = Mage::getStoreConfig( 'richsnippets/general/condition' );
-			$store_name = Mage::app()->getStore()->getName();
-
 			// Final array with all basic product data
 			$data = array(
 				'@context'    => 'http://schema.org',
@@ -235,9 +231,6 @@ class Creativestyle_Richsnippets_Block_Jsonld extends Mage_Core_Block_Template {
 				}
 			}
 
-			// getting all attributes from "Attributes" section of or extension's config area...
-			$attributes = Mage::getStoreConfig( 'richsnippets/attributes' );
-
 			// ... and putting them into $data array if they're not empty
 			foreach ( $attributes AS $key => $value ) {
 				if ( $value ) {
@@ -252,7 +245,6 @@ class Creativestyle_Richsnippets_Block_Jsonld extends Mage_Core_Block_Template {
 
 		if (Mage::getBlockSingleton('page/html_header')->getIsHomePage() || Mage::getSingleton('cms/page')->getIdentifier() == "home") {
 
-			$store_name = Mage::app()->getStore()->getName();
 			$url        = Mage::getStoreConfig( 'web/unsecure/base_url' );
 			$url_store  = Mage::getBaseUrl();
 
@@ -352,6 +344,7 @@ class Creativestyle_Richsnippets_Block_Jsonld extends Mage_Core_Block_Template {
 		if ( ! trustedshopscachecheck( $cacheFileName, $cacheTimeOut ) ) {
 			// load fresh from API
 			$ch = curl_init();
+			$ch = curl_init();
 			curl_setopt( $ch, CURLOPT_HEADER, false );
 			curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
 			curl_setopt( $ch, CURLOPT_POST, false );
@@ -375,8 +368,8 @@ class Creativestyle_Richsnippets_Block_Jsonld extends Mage_Core_Block_Template {
 	}
 
 	private function cleanAttribute( $s ) {
-		$s = str_replace( array( ">", "\n" ), array( "> ", " " ), $s );
-
+		$s = str_replace( array( ">", "\n", "\r", "\t" ), array( "> ", " ", " ", " " ), $s );
+		$s = trim( $s );
 		return html_entity_decode( strip_tags( $s ) );
 	}
 
